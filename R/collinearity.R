@@ -1,5 +1,3 @@
-install.packages("vcd")
-install.packages("corrplot")
 library(vcd)
 library(corrplot)
 # Data prep for collinearity test (categorical features)

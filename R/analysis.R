@@ -120,7 +120,7 @@ levels(mydata$"Avalanche Information") <- c("no", "yes")
 table(mydata$"Avalanche Information")
 
 # define feature (Group Size) Groupsize
-levels(mydata$v_10) <- c("alone", "in group", "in group")
+levels(mydata$v_10) <- c("alone", "small group", "big group")
 mydata$"Group Size" <- mydata$v_10
 
 # define feature (Always Avalanche Information) Always Avalanche Information
