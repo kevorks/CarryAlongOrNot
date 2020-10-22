@@ -3,15 +3,12 @@ library(tidyverse)
 library(reshape2)
 library(lubridate)
 library(readxl)
-library(mgcv)
 library(rsample)
 library(caret)
 library(tree)
 library(rpart)
-library(rattle)
 library(rpart.plot)
-library(RColorBrewer)
-library(partykit)
+
 
 # read data 
 alldata <- read.spss(file = "~/Desktop/Taubenstein/survey/Daten_bereinigt_Modell.sav",
@@ -75,15 +72,15 @@ mydata$v_4_2[is.na(mydata$v_4_2)] <- 0
 mydata$Familarity <- mydata$Familarity * mydata$v_4_2
 
 
-# define feature (Incompany) Incompany
+# define feature (Incompany) 
 mydata$Incompany <- mydata$v_7_3
 levels(mydata$Incompany) <- c("no", "yes")
 
-# define feature (Avalanche Danger Level) Avalanche Danger Level
+# define feature (Avalanche Danger Level) 
 mydata$"Avalanche Danger Level" <- mydata$v_7_2
 levels(mydata$"Avalanche Danger Level") <- c("no", "yes")
 
-# define feature (Tour Specific) Tour Specific
+# define feature (Tour Specific) 
 mydata$"Tour Specific" <- mydata$v_7_4
 levels(mydata$"Tour Specific") <- c("no", "yes")
 table(mydata$"Tour Specific")
@@ -106,7 +103,7 @@ mydata$"Terrain Information" <- as.factor(mydata$"Terrain Information")
 levels(mydata$"Terrain Information") <- c("unserious", "serious")
 table(mydata$"Terrain Information")
 
-# define feature (Avalanche Information) Avalanche Information
+# define feature (Avalanche Information)
 mydata <- mydata %>% 
   mutate("Avalanche Information" = ifelse(v_9_1 == "quoted" |
                                             v_9_2 == "quoted", 1,0))
@@ -119,31 +116,33 @@ mydata$"Avalanche Information" <- as.factor(mydata$"Avalanche Information")
 levels(mydata$"Avalanche Information") <- c("no", "yes")
 table(mydata$"Avalanche Information")
 
-# define feature (Group Size) Groupsize
+# define feature (Group Size)
 levels(mydata$v_10) <- c("alone", "small group", "big group")
 mydata$"Group Size" <- mydata$v_10
 
-# define feature (Always Avalanche Information) Always Avalanche Information
+# define feature (Always Avalanche Information)
 mydata <- mydata %>% 
   mutate("Always Avalanche Information" = ifelse(v_11 == "Fünfmal von fünf", 1,0))
 mydata$"Always Avalanche Information" <- as.factor(mydata$"Always Avalanche Information")
 levels(mydata$"Always Avalanche Information") <- c("no", "yes")
 table(mydata$"Always Avalanche Information")
 
-# define feature (Avalanche Education) Avalanche Education
-mydata$"Avalanche Education" <- mydata$v_12
-levels(mydata$"Avalanche Education") <- c("yes", "no")
+# define feature (Avalanche Education)
+mydata <- mydata %>% 
+  mutate("Avalanche Education" = ifelse(v_12 == "ja" & v_12_1_J_bereinigt >= 2014, 1,0))
+mydata$"Avalanche Education" <- as.factor(mydata$`Avalanche Education`)
+levels(mydata$"Avalanche Education") <- c("no", "yes")
 
-# define feature (DAV Snowcard) DAV Snowcard 
+# define feature (DAV Snowcard) 
 mydata$"DAV Snowcard" <- mydata$v_14_neu
 levels(mydata$"DAV Snowcard") <- c("yes", "no")
 table(mydata$`DAV Snowcard`)
 
-# define feature (Filter Method) Filter Method
+# define feature (Filter Method) 
 mydata$"Filter Method" <- mydata$v_15
 levels(mydata$"Filter Method") <- c("yes", "no")
 
-# define feature (Expertise) Expertise
+# define feature (Expertise) 
 mydata$yy <- mydata$v_18_Y
 mydata$yy[is.na(mydata$yy)] <- 1
 mydata$yyy <- mydata$v_19
@@ -155,24 +154,24 @@ mydata <- mydata %>%
   mutate(Expertise = mydata$yy * mydata$yyy)
 boxplot(mydata$Expertise)
 
-# define feature (Direct Avalanche Involvement)   Avalanche Involvement #####-----------
-sum(table(mydata$v_20)) # Ausprägungen direct experience = selber, indirect experience = beobachtet, no experience = nein
+# define feature (Direct Avalanche Involvement)  
+sum(table(mydata$v_20)) 
 mydata <- mydata %>% 
   mutate("Avalanche Involvement" = v_20)
 levels(mydata$"Avalanche Involvement") <- c("direct experience", "indirect experience", "no experience")
 table(mydata$"Avalanche Involvement")
 
-# define feature (Selfassessmnet Experinece) Selfassessmnet Experinece
+# define feature (Selfassessmnet Experinece)
 mydata$"Selfassessmnet Experinece" <- as.numeric(mydata$v_22)
 mydata$"Selfassessmnet Experinece" <- mydata$"Selfassessmnet Experinece" - 1
 mydata$"Selfassessmnet Experinece"[is.na(mydata$"Selfassessmnet Experinece")] <- 0
 
-# define feature (Selfassessmnet Riskiness) Selfassessmnet Riskiness
+# define feature (Selfassessmnet Riskiness)
 mydata$"Selfassessmnet Riskiness" <- as.numeric(mydata$v_23)
 mydata$"Selfassessmnet Riskiness" <- mydata$"Selfassessmnet Riskiness" - 1
 mydata$"Selfassessmnet Riskiness"[is.na(mydata$"Selfassessmnet Riskiness")] <- 0
 
-# define feature (Alpine Education) Alpine Education
+# define feature (Alpine Education) 
 mydata <- mydata %>% 
   mutate("Alpine Education" = ifelse(v_24_1 == "quoted" |
                                        v_24_2 == "quoted" |
@@ -191,7 +190,7 @@ mydata$"Alpine Education" <- as.factor(mydata$"Alpine Education")
 levels(mydata$"Alpine Education") <- c("no", "yes")
 table(mydata$"Alpine Education")
 
-# define feature (Climate Change Perception) Climate Change Perception ----- eventuell Input Max
+# define feature (Climate Change Perception)
 mydata <- mydata %>% 
   mutate("Climate Change Perception" = ifelse(V_25_neu == "Groß" |
                                                 V_25_neu == "Sehr groß", 1,0))
@@ -203,7 +202,7 @@ mydata$"Climate Change Perception" <- as.factor(mydata$"Climate Change Perceptio
 levels(mydata$"Climate Change Perception") <- c("no", "yes")
 table(mydata$"Climate Change Perception")
 
-# define feature (University Degree) University Degree
+# define feature (University Degree) 
 mydata <- mydata %>% 
   mutate("University Degree" = ifelse(v_29 == "Hochschulabschluss", 1,0))
 
@@ -215,7 +214,7 @@ mydata$"University Degree" <- as.factor(mydata$"University Degree")
 levels(mydata$"University Degree") <- c("no", "yes")
 table(mydata$"University Degree")
 
-# define feature (Minors in Haushold) Minors in Haushold (yes or no)
+# define feature (Minors in Haushold) 
 mydata <- mydata %>% 
   mutate("Minors in Haushold" = ifelse(v_30_2 == 0, 0,1))
 mydata$"Minors in Haushold"[is.na(mydata$"Minors in Haushold")] <- 0
@@ -232,7 +231,7 @@ mydata$Gender <- mydata$v_33
 levels(mydata$Gender) <- c("male", "female", NA)
 table(mydata$Gender)
 
-# define feature (Residency) Residency (nearby farway) die andere Variante ausprobieren
+# define feature (Residency) 
 names(mydata)
 sum(table(mydata$v_173))
 mydata <- mydata %>% 
@@ -259,7 +258,7 @@ mydata <- mydata %>%
          Wind = Avg_wind_d,
          Cloudiness = Avg_6t8_cloud_cover_total)
 
-# define feature Avalanche Assessment
+# define feature (Avalanche Assessment)
 mydata <- mydata %>% 
   mutate("Avalanche Assessment" = v_5)
 levels(mydata$`Avalanche Assessment`) <- c("1","2","3","4","5")
@@ -299,44 +298,27 @@ mydata <- mydata %>%
          `Tour Specific`,
          `Avalanche Danger Level`,
          Incompany,  
-         Familarity, # out of cv.test
+         Familarity, 
          Equipment) %>% 
   drop_na()
 
-# Droping NAs => overall 328 Observations for model building
-# checking for features to be independent 
+# Droping NAs => overall 319 Observations for model building
 
-# Cramer's V -- small = .10, medium = .30, large =.50 literature 
-# Cohen, J(1988). Statistical power analysis for the behavioral sciences (2nd ed.). Hillsdale, N.J.:L Erlbaum Associates
-cv.test <- function(x,y){
-  cv = sqrt(chisq.test(x,y, correct = FALSE)$statistic /
-              (length(x) * (min(length(unique(x)), length(unique(y))) -
-                              1)))
-  print.noquote("Cramér V:")
-  return(as.numeric(cv))
-}
-cv.test(mydata$Incompany, mydata$`Avalanche Situation`) # .24
-cv.test(mydata$Incompany, mydata$`Tour Specific`) # .19
-cv.test(mydata$Incompany, mydata$`Terrain Information`) # .09
-cv.test(mydata$Incompany, mydata$`Avalanche Information`) # .03
-cv.test(mydata$Incompany, mydata$`Group Size`) # 0.05
-cv.test(mydata$`Avalanche Education`, mydata$`DAV Snowcard`) # .41
-cv.test(mydata$`Avalanche Education`, mydata$`Avalanche Information`) # .14
-
+# Set seed and split the data into training/test data 
 set.seed(1234)
 data.tree.split <- initial_split(mydata, prop = 0.7)
 data.tree.train <- training(data.tree.split)
 data.tree.test <- testing(data.tree.split)
 
-# fit tree model
+# Fit the tree model
 mod.tree <- rpart(Equipment ~.,
-                  minsplit = 8, #10
-                  minbucket = round(8/3), #round(10/3)
+                  minsplit = 8, 
+                  minbucket = round(8/3),
                   cp = 0.01,
                   method = "class",
                   data = data.tree.train)
 
-fancyRpartPlot(mod.tree, caption = NULL)
+# Feature importance 
 mod.tree$variable.importance
 plotdf <- data.frame("Var_Imp" = mod.tree$variable.importance)
 #pdf(file = "~/Desktop/Taubenstein/varimportanceA.pdf", width = 8, height = 5)
@@ -347,18 +329,20 @@ ggplot(plotdf, aes(x = rownames(plotdf), y = Var_Imp/100)) +
   coord_flip()
 #dev.off()
 rownames(plotdf)
-# choose best cp and prune the tree
+
+# Choose best cp and prune the tree
 printcp(mod.tree)
-mod.tree <- prune(mod.tree, cp = 0.016279)
-fancyRpartPlot(mod.tree, caption = NULL)
+mod.tree <- prune(mod.tree, cp = 0.013793) 
+
+# Plot the tree
 #pdf(file = "~/Desktop/Taubenstein/treeA.pdf", width = 8, height = 5)
 rpart.plot(mod.tree, type = 4, clip.right.labs = FALSE, branch = .3, under = TRUE)
 #dev.off()
-#prp(tree, extra = 6, box.col = c("pink", "palegreen3"))
-# predict 
+
+# Predict for the test data
 tree.pred <- predict(mod.tree, data.tree.test, type = "class")
 
-# validate the model
+# Model validation
 confmat.tree <- confusionMatrix(tree.pred, as.factor(data.tree.test$Equipment))
-#save.image(file = "~/Desktop/Taubenstein/analysisA.RData")
+save.image(file = "~/Desktop/Taubenstein/analysisA.RData")
 

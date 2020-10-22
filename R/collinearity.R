@@ -1,5 +1,6 @@
 library(vcd)
 library(corrplot)
+
 # Data prep for collinearity test (categorical features)
 mydata.cv <- mydata %>% 
   select(`Avalanche Assessment`,
@@ -21,11 +22,13 @@ mydata.cv <- mydata %>%
          `Tour Specific`,
          `Avalanche Danger Level`,
          Incompany)
+
 # Initialize empty matrix to store coefficients
 empty.m <- matrix(ncol = length(mydata.cv),
                   nrow = length(mydata.cv),
                   dimnames = list(names(mydata.cv), 
                                   names(mydata.cv)))
+
 # Function that accepts matrix for coefficients and data and returns a correlation matrix
 calculate.cramer <- function(m, df) {
   for (r in seq(nrow(m))){
