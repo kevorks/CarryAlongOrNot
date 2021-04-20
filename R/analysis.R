@@ -339,10 +339,43 @@ mod.tree <- prune(mod.tree, cp = 0.013793)
 rpart.plot(mod.tree, type = 4, clip.right.labs = FALSE, branch = .3, under = TRUE)
 #dev.off()
 
+# 10 k cross validation
+set.seed(123)
+accuracy <- rep(0, 10)
+
+for (i in 1:10) {
+  # These indices indicate the interval of the test set
+  indices <- (((i-1) * round((1/10)*nrow(mydata))) + 1):((i*round((1/10) * nrow(mydata))))
+  
+  # Exclude them from the train set
+  train <- mydata[-indices,]
+  
+  # Include them in the test set
+  test <- mydata[indices,]
+  
+  # A model is learned using each training set
+  tree <- rpart(Equipment ~ ., train,
+                minsplit = 8, 
+                minbucket = round(8/3),
+                cp = 0.01,
+                method = "class")
+  
+  # Make a prediction on the test set using tree
+  pred <- predict(tree, test, type = "class")
+  
+  # Assign the confusion matrix to conf
+  conf <- confusionMatrix(pred, as.factor(test$Equipment))
+  
+  # Assign the accuracy of this model to the ith index in accuracy vector
+  accuracy[i] <- conf$overall[1]
+}
+
+mean(accuracy)
+
 # Predict for the test data
-tree.pred <- predict(mod.tree, data.tree.test, type = "class")
+# tree.pred <- predict(mod.tree, data.tree.test, type = "class")
 
 # Model validation
-confmat.tree <- confusionMatrix(tree.pred, as.factor(data.tree.test$Equipment))
+# confmat.tree <- confusionMatrix(tree.pred, as.factor(data.tree.test$Equipment))
 save.image(file = "~/Desktop/Taubenstein/analysisA.RData")
 
