@@ -41,9 +41,7 @@ calculate.cramer <- function(m, df) {
 
 cor.matrix <- calculate.cramer(empty.m ,mydata.cv)
 
-#pdf(file = "~/Desktop/Taubenstein/cramers_v.pdf", width = 8, height = 5)
 corrplot(cor.matrix, type = "upper", method = "number", number.cex = .4)
-#dev.off()
 
 # Data prep for collinearity test (metric features)
 mydata.col <- mydata %>% 
@@ -58,6 +56,4 @@ mydata.col <- mydata %>%
          Familarity)
 
 corr.mat <- cor(mydata.col)
-#pdf(file = "~/Desktop/Taubenstein/corr_met.pdf", width = 8, height = 5)
 corrplot(corr.mat, type = "upper", method = "number", number.cex = .4)
-#dev.off()

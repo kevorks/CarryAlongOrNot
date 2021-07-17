@@ -1,14 +1,10 @@
 library(foreign)
 library(tidyverse)
-library(reshape2)
 library(lubridate)
 library(readxl)
 library(rsample)
 library(caret)
-library(tree)
 library(rpart)
-library(rpart.plot)
-
 
 # read data
 alldata <- read.spss(file = "Daten_bereinigt_Modell.sav", to.data.frame = TRUE)
@@ -18,14 +14,6 @@ alldata$Date <- as.Date(as.POSIXct(alldata$Datum, origin = "1582-10-14", tz = "G
 
 # read data for feature "leaving Old Piste"
 loldp <- read_excel("ID_Tourenbereich_0_nicht_1_gefährlich.xlsx")
-
-# merge the data and delete the 4 four observations
-mydata <- full_join(loldp, alldata, by = "ID")
-mydata <- mydata %>%
-  slice(-139,
-        -140,
-        -303,
-        -304)
 
 # define feature (Leaving old Piste)
 mydata <- mydata %>%
@@ -152,12 +140,10 @@ levels(mydata$"Avalanche Involvement") <- c("direct experience",
 # define feature (Selfassessmnet Experinece)
 mydata$"Selfassessmnet Experinece" <- as.numeric(mydata$v_22)
 mydata$"Selfassessmnet Experinece" <- mydata$"Selfassessmnet Experinece" - 1
-mydata$"Selfassessmnet Experinece"[is.na(mydata$"Selfassessmnet Experinece")] <- 0
 
 # define feature (Selfassessmnet Riskiness)
 mydata$"Selfassessmnet Riskiness" <- as.numeric(mydata$v_23)
 mydata$"Selfassessmnet Riskiness" <- mydata$"Selfassessmnet Riskiness" - 1
-mydata$"Selfassessmnet Riskiness"[is.na(mydata$"Selfassessmnet Riskiness")] <- 0
 
 # define feature (Alpine Education)
 mydata <- mydata %>%
@@ -290,23 +276,19 @@ mod.tree <- rpart(Equipment ~.,
 # Feature importance
 mod.tree$variable.importance
 plotdf <- data.frame("Var_Imp" = mod.tree$variable.importance)
-#pdf(file = "~/Desktop/Taubenstein/varimportanceA.pdf", width = 8, height = 5)
+
 ggplot(plotdf, aes(x = rownames(plotdf), y = Var_Imp/100)) +
   geom_bar(stat = "identity") +
   ylab("") +
   xlab("") +
   coord_flip()
-#dev.off()
-rownames(plotdf)
 
 # Choose best cp and prune the tree
 printcp(mod.tree)
 mod.tree <- prune(mod.tree, cp = 0.013793)
 
-# Plot the tree
-#pdf(file = "tree.pdf", width = 8, height = 5)
+# Plot tree
 rpart.plot(mod.tree, type = 4, clip.right.labs = FALSE, branch = .3, under = TRUE)
-#dev.off()
 
 # 10 k cross validation
 set.seed(123)
@@ -345,9 +327,8 @@ for (i in 1:10) {
 
 mean(accuracy)
 
-# sensitivity analysis
+# ROC curve
 set.seed(123)
-# pdf(file = "roc.pdf", width = 8, height = 5)
 roc_obj <- roc(data.tree.test$Equipment, as.numeric(tree.pred),
                smoothed = TRUE,
                percent = TRUE,
@@ -356,4 +337,3 @@ roc_obj <- roc(data.tree.test$Equipment, as.numeric(tree.pred),
                # arguments for plot
                plot = TRUE, auc.polygon = TRUE, max.auc.polygon = TRUE,
                grid = TRUE, print.auc = TRUE, show.thres = TRUE)
-# dev.off()
