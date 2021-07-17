@@ -3,6 +3,6 @@ We analyze data from a questionnaire in which we asked people who have been carr
 
 In Folder **R** you can find the code of our analysis.
 
-In Folder **Supplementary Materials** you can finf all the relevant plots and descriptions.
+In Folder **Supplementary Materials** you can find all the relevant plots and descriptions.
 
 In Folder **Survey Questionnaire** you can find our questionnaire in ***german***. Note that this version ist the only available version.  
